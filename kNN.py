@@ -44,8 +44,7 @@ def learn_nn(training_input, training_labels):
     return nn
 
 
-def learn_lr(training_input, training_labels):
-    # TODO(shayousefi): play with tol and max_iter for better accuracy
+def learn_log_reg(training_input, training_labels):
     lr = LogisticRegressionCV(cv=5, penalty='l2', solver='lbfgs', tol=0.0001, max_iter=100, class_weight='balanced',
                               n_jobs=-1, multi_class='multinomial')
     lr.fit(training_input, training_labels)
@@ -78,5 +77,5 @@ if __name__ == '__main__':
     # nn = learn_nn(train_input, train_labels)
     # print calculate_accuracy(nn, test_input, test_labels)
 
-    lr = learn_lr(train_input, train_labels)
-    print calculate_accuracy(lr, test_input, test_labels)
+    log_reg = learn_log_reg(train_input, train_labels)
+    print calculate_accuracy(log_reg, test_input, test_labels)
