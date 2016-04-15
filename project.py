@@ -1,5 +1,6 @@
-from sklearn.linear_model import LogisticRegressionCV
+from sklearn.linear_model import LogisticRegressionCV, LinearRegression
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
 import scipy.io as sio
 import numpy as np
 
@@ -50,7 +51,16 @@ def learn_log_reg(training_input, training_labels):
     lr.fit(training_input, training_labels)
     return lr
 
+def learn_lin_reg(training_input, training_labels):
+    lr = LinearRegression(fit_intercept=False, normalize=False, copy_X=True, n_jobs=-1)
+    lr.fit(training_input, training_labels)
+    return lr
 
+def learn_svm(training_input, training_labels):
+    svm = SVC(C=1.0, kernel='poly', degree=7, gamma='auto', coef0=0.0, shrinking=True, probability=False, tol=0.001, cache_size=200, class_weight=None, verbose=False, max_iter=-1, decision_function_shape=None, random_state=None)
+    svm.fit(training_input, training_labels)
+    return svm
+    
 def calculate_accuracy(model, test_imgs, test_labels):
     return model.score(test_imgs, test_labels)
 
@@ -60,7 +70,7 @@ def classify(model, test_img, emotions):
 
 
 if __name__ == '__main__':
-    training_data = sio.loadmat('labeled_images.mat')
+    training_data = sio.loadmat('C:\\Users\\dhyey_000\\Desktop\\CSC412\\CSC412Project\\labeled_images.mat')
 
     # ith image is training_imgs[:,:,i], and its label is emotions[training_labels[i][0]]
     training_imgs = training_data['tr_images']
@@ -77,5 +87,11 @@ if __name__ == '__main__':
     # nn = learn_nn(train_input, train_labels)
     # print calculate_accuracy(nn, test_input, test_labels)
 
-    log_reg = learn_log_reg(train_input, train_labels)
-    print calculate_accuracy(log_reg, test_input, test_labels)
+    # log_reg = learn_log_reg(train_input, train_labels)
+    # print calculate_accuracy(log_reg, test_input, test_labels)
+
+    # lin_reg = learn_lin_reg(train_input, train_labels)
+    # print calculate_accuracy(lin_reg, test_input, test_labels)
+
+    svm = learn_svm(train_input, train_labels)
+    print calculate_accuracy(svm, test_input, test_labels)
