@@ -4,6 +4,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 from sklearn.svm import LinearSVC
+from sklearn.mixture import GMM
 import scipy.io as sio
 import numpy as np
 
@@ -90,10 +91,16 @@ def learn_lin_svm(training_input, training_labels):
     svm.fit(training_input, training_labels)
     return svm
 
+def learn_gmm(training_input, training_labels, means):
+	gmm = GMM(n_components=7, covariance_type='diag', random_state=None, thresh=None, tol=0.001, min_covar=0.001, n_iter=20, n_init=1, params='wmc', init_params='wmc', verbose=0)
+	gmm.means_ = means
+    
+    print gmm.means_
+	gmm.fit(training_input)
+	return gmm
 
 def calculate_accuracy(model, test_imgs, test_labels):
     return model.score(test_imgs, test_labels)
-
 
 def classify(model, test_img, emotions):
     return emotions[model.predict(test_img)[0]]
@@ -103,7 +110,6 @@ def get_accuracy(model, test_input, test_targets):
 	ctr = 0
 
 	for i in range(num_examples):
-	    #print round(model.predict(test_input[i].reshape(1,-1))[0]), test_targets[i]
 		if (round(model.predict(test_input[i].reshape(1,-1))[0]) == test_targets[i]):
 			ctr += 1
 	
@@ -131,10 +137,38 @@ if __name__ == '__main__':
 
     emotions = {1: 'Anger', 2: 'Disgust', 3: 'Fear', 4: 'Happy', 5: 'Sad', 6: 'Surprise', 7: 'Neutral'}
 
-    # sio.savemat('divided_data.mat', get_different_classes(training_imgs, training_labels))
-    
-
-
+#     d = get_different_classes(training_imgs, training_labels)
+#         
+# 
+#     valid_data = np.empty((0,1024))
+#     test_data = np.empty((0,1024))
+#     valid_labels = np.empty((0,1))
+#     tr_labels = np.empty((0,1))
+#     tr_data = np.empty((0,1024))
+# 
+# 	for k in ['1', '2', '3', '4', '5', '6', '7']:   # has to be ordered as d.keys() wouldnt be ordered and messes up
+# 		l = (d[k].shape[0] / 10) * -1
+# 
+# 		v = d[k][l:, :]
+# 		t = d[k][2 * l:l, :]
+# 		d[k] = d[k][:2 * l, :]
+# 
+# 		valid_data = np.vstack((valid_data, v))
+# 		labels = np.ones((abs(l), 1)) * int(k)
+# 		valid_labels = np.vstack((valid_labels, labels))   # will be same as test labels
+# 
+# 		test_data = np.vstack((test_data, t))
+# 
+# 		tr_data = np.vstack((tr_data, d[k]))
+# 		t_labels = np.ones((d[k].shape[0], 1)) * int(k)
+# 		tr_labels = np.vstack((tr_labels, t_labels))
+# 
+# 
+#     data = {'tr_data': tr_data, 'valid_data': valid_data, 'test_data': test_data, 'valid_labels': np.ravel(valid_labels), 'tr_labels': np.ravel(tr_labels)}
+# 
+#     sio.savemat('data.mat', data)
+#     
+#     sio.savemat('divided_tr_data.mat', d)
     # train_imgs = training_imgs[:,:,:2500]
     # train_labels = training_labels[:2500]
     # test_imgs = training_imgs[:,:,:2500]
@@ -159,10 +193,24 @@ if __name__ == '__main__':
     # print calculate_accuracy(log_reg_pca, test_input_pca, test_targets_pca)
     # print get_accuracy(log_reg_pca, test_input_pca, test_targets_pca)
 
-    # lin_reg = learn_lin_reg(train_input, train_targets)
-    # print calculate_accuracy(lin_reg, test_input, test_targets)   # 72% accuracy
+    # lin_reg = learn_lin_reg(train_input, train_targets) 
+    # print calculate_accuracy(lin_reg, test_input, test_targets) # 72% accuracy
     # print get_accuracy(lin_reg, test_input, test_targets)   # doesn't work as expected for this because predictionsare floats
 
+    # f = sio.loadmat('data.mat')
+    # log_reg = learn_log_reg(f['tr_data'], f['tr_labels'].T)
+    # print calculate_accuracy(log_reg, f['valid_data'], f['valid_labels'].T)   
+
+
+	f = sio.loadmat('data.mat')
+	
+	d = sio.loadmat('divided_tr_data.mat')
+	means = np.array([d[k].mean(axis=0) for k in ['1', '2', '3', '4', '5', '6', '7']])
+    gmm = learn_gmm(f['tr_data'], f['tr_labels'].T, means)
+    train_pred = gmm.predict(f['tr_data'])
+    print np.mean(train_pred.ravel() == f['tr_labels'].T)
+    #print get_accuracy(gmm, f['valid_data'], f['valid_labels'].T) 
+    
     # lin_reg = learn_lin_reg(train_input, train_targets)
     # print calculate_accuracy(lin_reg, test_input, test_targets)
 
