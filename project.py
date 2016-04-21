@@ -8,6 +8,16 @@ import scipy.io as sio
 import numpy as np
 
 
+def get_different_classes(imgs, labels):
+	d = {'1' : np.empty((0,1024)),'2': np.empty((0,1024)), '3': np.empty((0,1024)), '4': np.empty((0,1024)), '5': np.empty((0,1024)), '6': np.empty((0,1024)), '7': np.empty((0,1024))}
+
+	imgs, labels, train_scaler = get_input(imgs, labels)
+
+	for i in range(len(labels)):
+		d[str(labels[i])] = np.vstack([d[str(labels[i])], imgs[i]])
+	
+	return d
+
 def get_input(imgs, labels, scaler=None):
     I = np.rollaxis(imgs, 2)
     I = np.reshape(I, (I.shape[0], -1))
@@ -15,9 +25,10 @@ def get_input(imgs, labels, scaler=None):
     I = np.asarray(I, dtype=np.float64)
     if not scaler:
         scaler = StandardScaler(copy=False)
+    
     I = scaler.fit_transform(I)
-
     L = np.ravel(labels)
+    
     return I, L, scaler
 
 
@@ -26,10 +37,11 @@ def get_input_pca(imgs, labels, pca=None):
     I = np.reshape(I, (I.shape[0], -1))
 
     if not pca:
-        pca = RandomizedPCA(n_components=None, copy=False, iterated_power=3, whiten=False)
+    	pca = RandomizedPCA(n_components=None, copy=False, iterated_power=3, whiten=False)
+    
     I = pca.fit_transform(I)
-
     L = np.ravel(labels)
+
     return I, L, pca
 
 
@@ -86,6 +98,29 @@ def calculate_accuracy(model, test_imgs, test_labels):
 def classify(model, test_img, emotions):
     return emotions[model.predict(test_img)[0]]
 
+def get_accuracy(model, test_input, test_targets):
+	num_examples = len(test_targets)
+	ctr = 0
+
+	for i in range(num_examples):
+	    #print round(model.predict(test_input[i].reshape(1,-1))[0]), test_targets[i]
+		if (round(model.predict(test_input[i].reshape(1,-1))[0]) == test_targets[i]):
+			ctr += 1
+	
+	return (ctr/float(num_examples))
+
+def produce_submission(model, test_input):
+	f = open('submission.csv', 'w')
+	f.write('Id,Prediction\n')
+
+	for i in range(test_input.shape[0]):
+		f.write(str(i+1) + ',' + str(model.predict(test_input[i].reshape(1,-1))[0]) + '\n')
+
+	for i in range(419, 1254):
+		f.write(str(i) + ',' + '0' + '\n')
+	
+	f.close()
+
 
 if __name__ == '__main__':
     training_data = sio.loadmat('labeled_images.mat')
@@ -96,16 +131,20 @@ if __name__ == '__main__':
 
     emotions = {1: 'Anger', 2: 'Disgust', 3: 'Fear', 4: 'Happy', 5: 'Sad', 6: 'Surprise', 7: 'Neutral'}
 
-    train_imgs = training_imgs[:,:,:2500]
-    train_labels = training_labels[:2500]
-    test_imgs = training_imgs[:,:,:2500]
-    test_labels = training_labels[:2500]
+    # sio.savemat('divided_data.mat', get_different_classes(training_imgs, training_labels))
+    
 
-    train_input, train_targets, train_scaler = get_input(train_imgs, train_labels)
-    test_input, test_targets, _ = get_input(test_imgs, test_labels, train_scaler)
 
-    train_input_pca, train_targets_pca, train_pca = get_input_pca(train_imgs, train_labels)
-    test_input_pca, test_targets_pca, _ = get_input(test_imgs, test_labels, train_pca)
+    # train_imgs = training_imgs[:,:,:2500]
+    # train_labels = training_labels[:2500]
+    # test_imgs = training_imgs[:,:,:2500]
+    # test_labels = training_labels[:2500]
+
+    # train_input, train_targets, train_scaler = get_input(train_imgs, train_labels)
+    # test_input, test_targets, _ = get_input(test_imgs, test_labels, train_scaler)
+
+    # train_input_pca, train_targets_pca, train_pca = get_input_pca(train_imgs, train_labels)
+    # test_input_pca, test_targets_pca, _ = get_input(test_imgs, test_labels, train_pca)
 
     # knn = learn_knn(train_input, train_targets, 5)
     # print calculate_accuracy(knn, test_input, test_targets)
@@ -116,8 +155,13 @@ if __name__ == '__main__':
     # log_reg = learn_log_reg(train_input, train_targets)
     # print calculate_accuracy(log_reg, test_input, test_targets)
 
-    log_reg_pca = learn_log_reg(train_input_pca, train_targets_pca)
-    print calculate_accuracy(log_reg_pca, test_input_pca, test_targets_pca)
+    # log_reg_pca = learn_log_reg(train_input_pca, train_targets_pca)
+    # print calculate_accuracy(log_reg_pca, test_input_pca, test_targets_pca)
+    # print get_accuracy(log_reg_pca, test_input_pca, test_targets_pca)
+
+    # lin_reg = learn_lin_reg(train_input, train_targets)
+    # print calculate_accuracy(lin_reg, test_input, test_targets)   # 72% accuracy
+    # print get_accuracy(lin_reg, test_input, test_targets)   # doesn't work as expected for this because predictionsare floats
 
     # lin_reg = learn_lin_reg(train_input, train_targets)
     # print calculate_accuracy(lin_reg, test_input, test_targets)
@@ -127,3 +171,7 @@ if __name__ == '__main__':
 
     # svm = learn_svm(train_input, train_targets)
     # print calculate_accuracy(svm, test_input, test_targets)
+ 	
+ 	# pub_test = sio.loadmat('public_test_images')['public_test_images']
+    # pub_test_input, pub_test_target, _ = get_input(pub_test, test_labels, train_scaler)
+    # produce_submission(log_reg_pca, pub_test_input)
