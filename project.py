@@ -91,12 +91,9 @@ def learn_lin_svm(training_input, training_labels):
     svm.fit(training_input, training_labels)
     return svm
 
-def learn_gmm(training_input, training_labels, means):
-	gmm = GMM(n_components=7, covariance_type='diag', random_state=None, thresh=None, tol=0.001, min_covar=0.001, n_iter=20, n_init=1, params='wmc', init_params='wmc', verbose=0)
-	gmm.means_ = means
-    
-    print gmm.means_
-	gmm.fit(training_input)
+def learn_gmm(training_input):
+	gmm = GMM(n_components=1, covariance_type='tied', random_state=None, thresh=None, tol=0.0001, min_covar=0.001, n_iter=100, n_init=1, params='wmc', init_params='wmc', verbose=0)
+    gmm.fit(training_input)
 	return gmm
 
 def calculate_accuracy(model, test_imgs, test_labels):
@@ -202,13 +199,8 @@ if __name__ == '__main__':
     # print calculate_accuracy(log_reg, f['valid_data'], f['valid_labels'].T)   
 
 
-	f = sio.loadmat('data.mat')
 	
-	d = sio.loadmat('divided_tr_data.mat')
-	means = np.array([d[k].mean(axis=0) for k in ['1', '2', '3', '4', '5', '6', '7']])
-    gmm = learn_gmm(f['tr_data'], f['tr_labels'].T, means)
-    train_pred = gmm.predict(f['tr_data'])
-    print np.mean(train_pred.ravel() == f['tr_labels'].T)
+
     #print get_accuracy(gmm, f['valid_data'], f['valid_labels'].T) 
     
     # lin_reg = learn_lin_reg(train_input, train_targets)
@@ -223,3 +215,23 @@ if __name__ == '__main__':
  	# pub_test = sio.loadmat('public_test_images')['public_test_images']
     # pub_test_input, pub_test_target, _ = get_input(pub_test, test_labels, train_scaler)
     # produce_submission(log_reg_pca, pub_test_input)
+
+
+
+    scaler = StandardScaler(copy=False)
+    pca = RandomizedPCA(n_components=200, copy=False, iterated_power=3, whiten=False)
+    
+	f = sio.loadmat('data.mat')
+	d = sio.loadmat('divided_tr_data.mat')
+
+	log_prob = np.empty((290,7))
+	
+	gmms = {'1' : None, '2' : None, '3' : None, '4' : None, '5' : None, '6' : None, '7' : None}
+	
+	for k in ['1', '2', '3', '4', '5', '6', '7']:
+		gmms[k] = learn_gmm(pca.fit_transform(d[k]))
+		probs = gmms[k].score(pca.fit_transform(f['valid_data']))
+		log_prob[:,int(k) - 1] = probs
+    
+	pred = np.argmax(log_prob, axis=1) + 1 # classes are 1-7, not 0-6
+	print np.mean(pred == f['valid_labels'][0])
