@@ -7,6 +7,8 @@ from sklearn.svm import LinearSVC
 from sklearn.mixture import GMM
 import scipy.io as sio
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 
 def get_different_classes(imgs, labels):
@@ -112,18 +114,12 @@ def get_accuracy(model, test_input, test_targets):
 	
 	return (ctr/float(num_examples))
 
-def produce_submission(model, test_input):
-	f = open('submission.csv', 'w')
-	f.write('Id,Prediction\n')
-
-	for i in range(test_input.shape[0]):
-		f.write(str(i+1) + ',' + str(model.predict(test_input[i].reshape(1,-1))[0]) + '\n')
-
-	for i in range(419, 1254):
-		f.write(str(i) + ',' + '0' + '\n')
-	
-	f.close()
-
+def plot(x_data, y_data, x_label, y_label, fig_name):
+	fig = plt.plot(x_data,y_data, 'r-o')
+	plt.xlabel(x_label)
+	plt.ylabel(y_label)
+	plt.savefig(fig_name)
+	plt.show()
 
 if __name__ == '__main__':
     training_data = sio.loadmat('labeled_images.mat')
