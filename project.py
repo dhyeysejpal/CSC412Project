@@ -76,7 +76,7 @@ def learn_nn(training_input, training_labels):
 
 
 def learn_log_reg(training_input, training_labels):
-    lr = LogisticRegressionCV(cv=5, penalty='l2', solver='lbfgs', tol=0.0001, max_iter=100, class_weight='balanced',
+    lr = LogisticRegressionCV(cv=5, penalty='l2', solver='lbfgs', tol=0.0001, max_iter=50, class_weight='balanced',
                               n_jobs=-1, verbose=1, multi_class='multinomial')
     lr.fit(training_input, training_labels)
     return lr
@@ -124,9 +124,9 @@ def learn_gmm(training_input, training_labels):
     return gmm
 
 
-def calculate_accuracy(model, test_imgs, test_labels):
+def calculate_error(model, test_imgs, test_labels):
     pred_labels = model.predict(test_imgs)
-    return accuracy_score(test_labels, pred_labels)
+    return 1 - accuracy_score(test_labels, pred_labels)
 
 
 def classify(model, test_img, emotions):
@@ -163,7 +163,7 @@ if __name__ == '__main__':
 
     emotions = {1: 'Anger', 2: 'Disgust', 3: 'Fear', 4: 'Happy', 5: 'Sad', 6: 'Surprise', 7: 'Neutral'}
 
-    plot([1,3,5,7,9], [55.1, 43.2, 45.6, 56.2, 43.8], [65.4,54.3,63.2,54.3,49.6], 'k', 'Accuracy', 'sample_graph.png')
+    # plot([1,3,5,7,9], [55.1, 43.2, 45.6, 56.2, 43.8], [65.4,54.3,63.2,54.3,49.6], 'k', 'Accuracy', 'sample_graph.png')
 
 
 
@@ -227,10 +227,11 @@ if __name__ == '__main__':
     # lin_reg = learn_lin_reg(train_input, train_targets)
     # print calculate_accuracy(lin_reg, test_input, test_targets) # 72% accuracy
     # print get_accuracy(lin_reg, test_input, test_targets)   # doesn't work as expected for this because predictionsare floats
-
-    # f = sio.loadmat('data.mat')
-    # log_reg = learn_log_reg(f['tr_data'], f['tr_labels'].T)
-    # print calculate_accuracy(log_reg, f['valid_data'], f['valid_labels'].T)
+    
+    f = sio.loadmat('data.mat')
+    log_reg = learn_log_reg(f['tr_data'], f['tr_labels'].T)
+    print calculate_error(log_reg, f['tr_data'], f['tr_labels'].T)
+    print calculate_error(log_reg, f['valid_data'], f['valid_labels'].T)
 
 
 
