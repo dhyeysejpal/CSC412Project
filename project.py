@@ -5,11 +5,12 @@ from sklearn.mixture import GMM
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC, SVC
-from sknn.mlp import Classifier, Convolution, Layer
+#from sknn.mlp import Classifier, Convolution, Layer
 import matplotlib.pyplot as plt
 import numpy as np
 import pickle
 import scipy.io as sio
+import pylab
 
 
 def get_different_classes(imgs, labels):
@@ -143,10 +144,12 @@ def get_accuracy(model, test_input, test_targets):
     return (ctr/float(num_examples))
 
 
-def plot(x_data, y_data, x_label, y_label, fig_name):
-    fig = plt.plot(x_data,y_data, 'r-o')
+def plot(x_data, y_train, y_valid, x_label, y_label, fig_name):
+    plt.plot(x_data,y_train, 'r-o', label='Training data')
+    plt.plot(x_data,y_valid, 'b-o', label='Valid data')
     plt.xlabel(x_label)
     plt.ylabel(y_label)
+    pylab.legend(loc='upper right')
     plt.savefig(fig_name)
     plt.show()
 
@@ -159,6 +162,10 @@ if __name__ == '__main__':
     training_labels = training_data['tr_labels']
 
     emotions = {1: 'Anger', 2: 'Disgust', 3: 'Fear', 4: 'Happy', 5: 'Sad', 6: 'Surprise', 7: 'Neutral'}
+
+    plot([1,3,5,7,9], [55.1, 43.2, 45.6, 56.2, 43.8], [65.4,54.3,63.2,54.3,49.6], 'k', 'Accuracy', 'sample_graph.png')
+
+
 
 #     d = get_different_classes(training_imgs, training_labels)
 #
@@ -192,17 +199,17 @@ if __name__ == '__main__':
 #     sio.savemat('data.mat', data)
 #
 #     sio.savemat('divided_tr_data.mat', d)
-
-    train_imgs = training_imgs[:,:,:2500]
-    train_labels = training_labels[:2500]
-    test_imgs = training_imgs[:,:,:2500]
-    test_labels = training_labels[:2500]
-
-    train_input, train_targets, train_scaler = get_input(train_imgs, train_labels)
-    test_input, test_targets, _ = get_input(test_imgs, test_labels, train_scaler)
-
-    train_input_pca, train_targets_pca, train_pca = get_input_pca(train_imgs, train_labels)
-    test_input_pca, test_targets_pca, _ = get_input(test_imgs, test_labels, train_pca)
+# 
+#     train_imgs = training_imgs[:,:,:2500]
+#     train_labels = training_labels[:2500]
+#     test_imgs = training_imgs[:,:,:2500]
+#     test_labels = training_labels[:2500]
+# 
+#     train_input, train_targets, train_scaler = get_input(train_imgs, train_labels)
+#     test_input, test_targets, _ = get_input(test_imgs, test_labels, train_scaler)
+# 
+#     train_input_pca, train_targets_pca, train_pca = get_input_pca(train_imgs, train_labels)
+#     test_input_pca, test_targets_pca, _ = get_input(test_imgs, test_labels, train_pca)
 
     # knn = learn_knn(train_input, train_targets, 5)
     # print calculate_accuracy(knn, test_input, test_targets)
@@ -242,10 +249,10 @@ if __name__ == '__main__':
     # gmm = learn_gmm(train_input, train_targets)
     # print calculate_accuracy(gmm, test_input, test_targets - 1)
 
-    nn = learn_nn(train_input, train_targets)
-    pickle.dump(nn, open('nn.pkl', 'wb'))
-    print(calculate_accuracy(nn, test_input, test_targets))
-
+#     nn = learn_nn(train_input, train_targets)
+#     pickle.dump(nn, open('nn.pkl', 'wb'))
+#     print(calculate_accuracy(nn, test_input, test_targets))
+# 
     # pub_test = sio.loadmat('public_test_images')['public_test_images']
     # pub_test_input, pub_test_target, _ = get_input(pub_test, test_labels, train_scaler)
     # produce_submission(log_reg_pca, pub_test_input)
