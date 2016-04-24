@@ -5,7 +5,7 @@ from sklearn.mixture import GMM
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC, SVC
-#from sknn.mlp import Classifier, Convolution, Layer
+# from sknn.mlp import Classifier, Convolution, Layer
 import matplotlib.pyplot as plt
 import numpy as np
 import pickle
@@ -70,7 +70,7 @@ def learn_nn(training_input, training_labels):
         Convolution("Rectifier", channels=1, kernel_shape=(3, 3)),
         Layer("Softmax")
     ]
-    nn = Classifier(layers=layers, learning_rate=0.005, n_iter=50, verbose=True)
+    nn = Classifier(layers=layers, learning_rate=0.005, n_iter=25, verbose=True)
     nn.fit(training_input, training_labels)
     return nn
 
@@ -199,15 +199,15 @@ if __name__ == '__main__':
 #     sio.savemat('data.mat', data)
 #
 #     sio.savemat('divided_tr_data.mat', d)
-# 
+#
 #     train_imgs = training_imgs[:,:,:2500]
 #     train_labels = training_labels[:2500]
 #     test_imgs = training_imgs[:,:,:2500]
 #     test_labels = training_labels[:2500]
-# 
+#
 #     train_input, train_targets, train_scaler = get_input(train_imgs, train_labels)
 #     test_input, test_targets, _ = get_input(test_imgs, test_labels, train_scaler)
-# 
+#
 #     train_input_pca, train_targets_pca, train_pca = get_input_pca(train_imgs, train_labels)
 #     test_input_pca, test_targets_pca, _ = get_input(test_imgs, test_labels, train_pca)
 
@@ -227,7 +227,7 @@ if __name__ == '__main__':
     # lin_reg = learn_lin_reg(train_input, train_targets)
     # print calculate_accuracy(lin_reg, test_input, test_targets) # 72% accuracy
     # print get_accuracy(lin_reg, test_input, test_targets)   # doesn't work as expected for this because predictionsare floats
-    
+
     f = sio.loadmat('data.mat')
     log_reg = learn_log_reg(f['tr_data'], f['tr_labels'].T)
     print calculate_error(log_reg, f['tr_data'], f['tr_labels'].T)
@@ -250,10 +250,17 @@ if __name__ == '__main__':
     # gmm = learn_gmm(train_input, train_targets)
     # print calculate_accuracy(gmm, test_input, test_targets - 1)
 
-#     nn = learn_nn(train_input, train_targets)
-#     pickle.dump(nn, open('nn.pkl', 'wb'))
-#     print(calculate_accuracy(nn, test_input, test_targets))
-# 
+    # nn = learn_nn(train_input, train_targets)
+    # pickle.dump(nn, open('nn.pkl', 'wb'))
+    # print(calculate_accuracy(nn, test_input, test_targets))
+
+    f = sio.loadmat('data.mat')
+    pca = RandomizedPCA(n_components=None, copy=False, iterated_power=3, whiten=False)
+    tr_pca = pca.fit_transform(f['tr_data'])
+    valid_pca = pca.transform(f['valid_data'])
+    nn = learn_nn(tr_pca, f['tr_labels'].T)
+    print(calculate_accuracy(nn, valid_pca, f['valid_labels'].T))
+
     # pub_test = sio.loadmat('public_test_images')['public_test_images']
     # pub_test_input, pub_test_target, _ = get_input(pub_test, test_labels, train_scaler)
     # produce_submission(log_reg_pca, pub_test_input)
