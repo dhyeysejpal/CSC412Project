@@ -5,8 +5,10 @@ from sklearn.mixture import GMM
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC, SVC
+from sknn.mlp import Classifier, Convolution, Layer
 import matplotlib.pyplot as plt
 import numpy as np
+import pickle
 import scipy.io as sio
 
 
@@ -36,10 +38,10 @@ def get_input(imgs, labels, scaler=None):
     I = np.asarray(I, dtype=np.float64)
     if not scaler:
         scaler = StandardScaler(copy=False)
-    
+
     I = scaler.fit_transform(I)
     L = np.ravel(labels)
-    
+
     return I, L, scaler
 
 
@@ -49,7 +51,7 @@ def get_input_pca(imgs, labels, pca=None):
 
     if not pca:
         pca = RandomizedPCA(n_components=None, copy=False, iterated_power=3, whiten=False)
-    
+
     I = pca.fit_transform(I)
     L = np.ravel(labels)
 
@@ -63,12 +65,11 @@ def learn_knn(training_input, training_labels, nn):
 
 
 def learn_nn(training_input, training_labels):
-    # TODO: replace with sknn
-    nn = MLPClassifier(hidden_layer_sizes=(100, ), activation='logistic', algorithm='adam', alpha=0.0001,
-                       batch_size='auto', learning_rate='constant', learning_rate_init=0.001, power_t=0.5, max_iter=200,
-                       shuffle=True, random_state=None, tol=0.0001, verbose=False, warm_start=False, momentum=0.9,
-                       nesterovs_momentum=True, early_stopping=False, validation_fraction=0.1, beta_1=0.9, beta_2=0.999,
-                       epsilon=1e-08)
+    layers = [
+        Convolution("Rectifier", channels=1, kernel_shape=(3, 3)),
+        Layer("Softmax")
+    ]
+    nn = Classifier(layers=layers, learning_rate=0.005, n_iter=50, verbose=True)
     nn.fit(training_input, training_labels)
     return nn
 
@@ -160,36 +161,36 @@ if __name__ == '__main__':
     emotions = {1: 'Anger', 2: 'Disgust', 3: 'Fear', 4: 'Happy', 5: 'Sad', 6: 'Surprise', 7: 'Neutral'}
 
 #     d = get_different_classes(training_imgs, training_labels)
-#         
-# 
+#
+#
 #     valid_data = np.empty((0,1024))
 #     test_data = np.empty((0,1024))
 #     valid_labels = np.empty((0,1))
 #     tr_labels = np.empty((0,1))
 #     tr_data = np.empty((0,1024))
-# 
+#
 # 	for k in ['1', '2', '3', '4', '5', '6', '7']:   # has to be ordered as d.keys() wouldnt be ordered and messes up
 # 		l = (d[k].shape[0] / 10) * -1
-# 
+#
 # 		v = d[k][l:, :]
 # 		t = d[k][2 * l:l, :]
 # 		d[k] = d[k][:2 * l, :]
-# 
+#
 # 		valid_data = np.vstack((valid_data, v))
 # 		labels = np.ones((abs(l), 1)) * int(k)
 # 		valid_labels = np.vstack((valid_labels, labels))   # will be same as test labels
-# 
+#
 # 		test_data = np.vstack((test_data, t))
-# 
+#
 # 		tr_data = np.vstack((tr_data, d[k]))
 # 		t_labels = np.ones((d[k].shape[0], 1)) * int(k)
 # 		tr_labels = np.vstack((tr_labels, t_labels))
-# 
-# 
+#
+#
 #     data = {'tr_data': tr_data, 'valid_data': valid_data, 'test_data': test_data, 'valid_labels': np.ravel(valid_labels), 'tr_labels': np.ravel(tr_labels)}
-# 
+#
 #     sio.savemat('data.mat', data)
-#     
+#
 #     sio.savemat('divided_tr_data.mat', d)
 
     train_imgs = training_imgs[:,:,:2500]
@@ -216,19 +217,19 @@ if __name__ == '__main__':
     # print calculate_accuracy(log_reg_pca, test_input_pca, test_targets_pca)
     # print get_accuracy(log_reg_pca, test_input_pca, test_targets_pca)
 
-    # lin_reg = learn_lin_reg(train_input, train_targets) 
+    # lin_reg = learn_lin_reg(train_input, train_targets)
     # print calculate_accuracy(lin_reg, test_input, test_targets) # 72% accuracy
     # print get_accuracy(lin_reg, test_input, test_targets)   # doesn't work as expected for this because predictionsare floats
 
     # f = sio.loadmat('data.mat')
     # log_reg = learn_log_reg(f['tr_data'], f['tr_labels'].T)
-    # print calculate_accuracy(log_reg, f['valid_data'], f['valid_labels'].T)   
+    # print calculate_accuracy(log_reg, f['valid_data'], f['valid_labels'].T)
 
 
 
 
-    #print get_accuracy(gmm, f['valid_data'], f['valid_labels'].T) 
-    
+    #print get_accuracy(gmm, f['valid_data'], f['valid_labels'].T)
+
     # lin_reg = learn_lin_reg(train_input, train_targets)
     # print calculate_accuracy(lin_reg, test_input, test_targets)
 
@@ -238,8 +239,12 @@ if __name__ == '__main__':
     # svm = learn_svm(train_input, train_targets)
     # print calculate_accuracy(svm, test_input, test_targets)
 
-    gmm = learn_gmm(train_input, train_targets)
-    print(calculate_accuracy(gmm, test_input, test_targets - 1))
+    # gmm = learn_gmm(train_input, train_targets)
+    # print calculate_accuracy(gmm, test_input, test_targets - 1)
+
+    nn = learn_nn(train_input, train_targets)
+    pickle.dump(nn, open('nn.pkl', 'wb'))
+    print(calculate_accuracy(nn, test_input, test_targets))
 
     # pub_test = sio.loadmat('public_test_images')['public_test_images']
     # pub_test_input, pub_test_target, _ = get_input(pub_test, test_labels, train_scaler)
