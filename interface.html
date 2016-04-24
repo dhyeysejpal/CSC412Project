@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Facial Expression Recognition System</title>
+		<script type="text/javascript">
+			function DisplaySize()
+			{
+				var file = document.getElementById("image").files[0];
+
+   				return true;
+			}
+		</script>
+	</head>
+
+	<body style="background: url('hof.png') no-repeat; background-size: cover;">
+		<center style="color: white;">
+			<h1> Welcome to Facial Expression Recognition System</h1>
+			<h3 style="width: 50%"> Upload a photo to recognize expressions on the faces of the people in it. The system first detects the faces in the image and then uses various machine learning methods to recognize expressions. The final result is a weighted average of these methods.</h3>
+			<form style="margin-bottom: 80px; margin-top: 80px;">
+				<input type="file" id="image">
+				<br><br>			
+				<input type="submit" value="Upload" onclick="return DisplaySize();" />
+			</form>
+			<img src="file:exp.png" style="width: 50%;">
+		</center>
+	</body>
+</html>
