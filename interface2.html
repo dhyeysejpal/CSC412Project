@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Facial Expression Recognition System</title>
+		<script type="text/javascript">
+			function DisplaySize()
+			{
+				var file = document.getElementById("image").files[0];
+
+   				return true;
+			}
+		</script>
+	</head>
+
+	<body style="background: url('hof.png') no-repeat; background-size: cover; color: white;">
+		<center>
+			<h1> Welcome to Facial Expression Recognition System</h1>
+			<h3 style="width: 50%"> Upload a photo to recognize expressions on the faces of the people in it. The system first detects the faces in the image and then uses various machine learning methods to recognize expressions. The final result is a majority vote of these methods.</h3>
+			<form style="margin-bottom: 20px; margin-top: 20px;">
+				<input type="file" id="image">
+				<br><br>			
+				<input type="submit" value="Upload" onclick="return DisplaySize();" />
+			</form>
+			<h3> Results: </h3>
+			<table style="font-size: 19px;">
+				<tr><td>k-NN: </td> 				<td>Neutral</td></tr>
+				<tr><td>Logistic Regression:</td> 	<td>Happy</td></tr>
+				<tr><td>Linear SVM: </td>			<td>Happy</td></tr>
+				<tr><td>GMM:</td> 					<td>Angry</td></tr>
+				<tr><td>Neural Network: </td>		<td>Happy</td></tr>
+				<tr><td> <td> </td></tr>
+				<tr><td> <td> </td></tr>
+				<tr><td>Final Result:</td> 			<td>Happy</td></tr>
+			</table>
+			<br><br>
+			<img src="file:happy.png" style="width: 50%; height: 70%;">
+		</center>
+	</body>
+</html>
