@@ -79,13 +79,15 @@ function [p, L] = ComputeLikelihood(X, omega, mu, sigma)
         % based on equation (4)
         log_b(:, m) = sum((((X - mu_mat) .^ 2) ./ sigma_row_mat), 2) .* -0.5 - log_den;
     end
-    
     rep_omega = repmat(omega, T, 1);    % T rows, each having a copy of omega
-    p = (exp(log_b) .* rep_omega);    % Size is TxM
-    % Each row has omega_m * b_m for x_t.
+    p = (log_b + log(rep_omega));    % Size is TxM
+    max_p = max(max(p));
+
+    % Each row has log(omega_m * b_m) for x_t.
     % We sum over columns to get probability of x_t, and p(X) = prod(p(x_t|theta))
-    L = (sum(p, 2))
-    L = sum(log(L));   % log p(X) = sum(log(p(x_t|theta)))
+    L = log(sum(exp(p - max_p), 2)) + max_p;
+    disp(L);
+    L = sum(L);   % log p(X) = sum(log(p(x_t|theta)))
     p = diag(1 ./ sum(p, 2)) * p;    % Each element has to be divided by the sum of its row
 end
 
